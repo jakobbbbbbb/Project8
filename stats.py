@@ -1,6 +1,10 @@
 import streamlit as st
-from registrerResult import users_df, nicknames, get_user_stats, get_head_to_head_stats, get_all_users_stats
+from registrerResult import get_users, get_user_stats, get_head_to_head_stats, get_all_users_stats
 import plotly.graph_objects as go
+
+# Fetch users from the database
+users_df = get_users()
+nicknames = users_df['nick_name'].tolist()
 
 # Additional section for user stats
 st.markdown("<h3>🥇Brukerstatistikk</h3>", unsafe_allow_html=True)
@@ -18,7 +22,8 @@ st.write(f'{selected_user} har {wins} seiere og {losses} tap.')
 # Display win rate as styled text
 st.markdown(f"Seiersprosent: {win_rate:.2f}%")
 st.divider()
-opponent = st.selectbox('Sammenlign med en motstander', nicknames, index = 1, placeholder='Velg motstander',key='opponent')
+
+opponent = st.selectbox('Sammenlign med en motstander', nicknames, index=1, placeholder='Velg motstander', key='opponent')
 if opponent != selected_user:
     opponent_id = users_df[users_df['nick_name'] == opponent]['id'].values[0]
     head_to_head_wins, head_to_head_losses = get_head_to_head_stats(selected_user_id, opponent_id)
@@ -28,9 +33,11 @@ if opponent != selected_user:
     st.write(f'Vinnerprosent mot {opponent}: {head_to_head_win_rate:.1f}%')
 else:
     st.error('Idiot, velg en annen motstander enn deg selv.')
+
 st.divider()
+
 # Podium for top 3 players
-st.markdown("<h3> Topp 3 👑</h3>", unsafe_allow_html=True)
+st.markdown("<h3>Topp 3 👑</h3>", unsafe_allow_html=True)
 
 stats_df = get_all_users_stats()
 top_3 = stats_df.nlargest(3, 'win_rate')

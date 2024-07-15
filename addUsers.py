@@ -51,6 +51,7 @@ if 'county' not in st.session_state:
     st.session_state['county'] = counties[0]
 
 # Streamlit app
+st.header("Brukere")
 st.subheader("Legg til ny bruker")
 
 with st.form(key='Add new user'):

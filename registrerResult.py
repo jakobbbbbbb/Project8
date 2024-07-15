@@ -1,5 +1,3 @@
-
-
 import streamlit as st
 import pandas as pd
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String
@@ -26,6 +24,7 @@ create_results_table(engine)
 def add_result(winner_id, loser_id):
     result_data = pd.DataFrame({'winner_id': [winner_id], 'loser_id': [loser_id], 'date': [pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')]})
     result_data.to_sql('results', con=engine, if_exists='append', index=False)
+    st.experimental_rerun()  # Rerun to refresh data
 
 def get_users():
     query = "SELECT * FROM users"
@@ -82,5 +81,3 @@ with st.form(key='Add new result'):
         else:
             st.error('Idiot, en spiller kan ikke spille mot seg selv.')
 
-# Display all results in the database for verification
-results_df = pd.read_sql('SELECT * FROM results', con=engine)
