@@ -1,5 +1,6 @@
 import streamlit as st
-from registrerResult import*
+from registrerResult import users_df, nicknames, get_user_stats, get_head_to_head_stats, get_all_users_stats
+import plotly.graph_objects as go
 
 # Additional section for user stats
 st.markdown("<h3>🥇Brukerstatistikk</h3>", unsafe_allow_html=True)

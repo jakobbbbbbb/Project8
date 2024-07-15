@@ -3,7 +3,6 @@
 import streamlit as st
 import pandas as pd
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String
-import plotly.graph_objects as go
 
 # Initialize database engine
 engine = create_engine('sqlite:///billiards.db')
