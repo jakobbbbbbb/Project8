@@ -1,7 +1,13 @@
 import streamlit as st
 # Main menu for Project 8
 
-st.title("Project 8X")
+st.set_page_config(
+    page_title="Project 8X",
+    page_icon="/Users/jakobrudeovstaas/Project 8X/logo2.png",  # Update this path to your favicon file
+    layout="centered",
+    initial_sidebar_state="expanded",
+)
+
 
 pg = st.navigation([
     st.Page("mainMenu.py", title = 'Hovedmeny', icon = ':material/home:'),
