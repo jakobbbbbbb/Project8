@@ -1,6 +1,8 @@
+
+
 import streamlit as st
 import pandas as pd
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, text
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String
 import plotly.graph_objects as go
 
 # Initialize database engine
@@ -39,6 +41,18 @@ def get_user_stats(user_id):
 
     return wins, losses
 
+def get_all_users_stats():
+    users = get_users()
+    stats = []
+    for index, user in users.iterrows():
+        user_id = user['id']
+        nick_name = user['nick_name']
+        wins, losses = get_user_stats(user_id)
+        total_games = wins + losses
+        win_rate = (wins / total_games) * 100 if total_games > 0 else 0
+        stats.append({'nick_name': nick_name, 'win_rate': win_rate})
+    return pd.DataFrame(stats)
+
 def get_head_to_head_stats(user_id, opponent_id):
     wins_query = f"SELECT COUNT(*) AS wins FROM results WHERE winner_id = {user_id} AND loser_id = {opponent_id}"
     losses_query = f"SELECT COUNT(*) AS losses FROM results WHERE loser_id = {user_id} AND winner_id = {opponent_id}"
@@ -56,8 +70,8 @@ users_df = get_users()
 nicknames = users_df['nick_name'].tolist()
 
 with st.form(key='Add new result'):
-    winner = st.selectbox('Hvem vant?', nicknames, index=0, key='winner')
-    loser = st.selectbox('Hvem tapte?', nicknames, index=1, key='loser')
+    winner = st.selectbox('Hvem vant?', nicknames, index=None, placeholder='Velg en vinner', key='winner')
+    loser = st.selectbox('Hvem tapte?', nicknames, index=None, placeholder='Velg en taper', key='loser')
     submit_result = st.form_submit_button(label='Registrer resultat')
 
     if submit_result:
@@ -75,7 +89,7 @@ results_df = pd.read_sql('SELECT * FROM results', con=engine)
 # Additional section for user stats
 st.header("Brukerstatistikk")
 
-selected_user = st.selectbox('Velg bruker for statistikk', nicknames, key='selected_user')
+selected_user = st.selectbox('Se statistikk for bruker', nicknames, placeholder='Velg en bruker', key='selected_user')
 selected_user_id = users_df[users_df['nick_name'] == selected_user]['id'].values[0]
 
 wins, losses = get_user_stats(selected_user_id)
@@ -85,26 +99,40 @@ win_rate = (wins / total_games) * 100 if total_games > 0 else 0
 # Display win/loss stats
 st.write(f'{selected_user} har {wins} seiere og {losses} tap.')
 
-# Display win rate as a gauge chart
-fig = go.Figure(go.Indicator(
-    mode="gauge+number",
-    value=win_rate,
-    title={'text': "Seiersprosent"},
-    gauge={'axis': {'range': [0, 100]},
-           'bar': {'color': "darkblue"},
-           'steps': [
-               {'range': [0, 50], 'color': "lightgray"},
-               {'range': [50, 100], 'color': "gray"}]}))
-
-st.plotly_chart(fig)
-
-opponent = st.selectbox('Velg en motstander du vil sammenligne deg med', nicknames, key='opponent')
+# Display win rate as styled text
+st.markdown(f"Seiersprosent: {win_rate:.2f}%")
+st.divider()
+opponent = st.selectbox('Sammenlign med en motstander', nicknames, index = 1, placeholder='Velg motstander',key='opponent')
 if opponent != selected_user:
     opponent_id = users_df[users_df['nick_name'] == opponent]['id'].values[0]
     head_to_head_wins, head_to_head_losses = get_head_to_head_stats(selected_user_id, opponent_id)
     total_head_to_head_games = head_to_head_wins + head_to_head_losses
     head_to_head_win_rate = (head_to_head_wins / total_head_to_head_games) * 100 if total_head_to_head_games > 0 else 0
     st.write(f'{selected_user} har {head_to_head_wins} seiere og {head_to_head_losses} tap mot {opponent}.')
-    st.write(f'Vinnerprosent mot {opponent}: {head_to_head_win_rate:.2f}%')
+    st.write(f'Vinnerprosent mot {opponent}: {head_to_head_win_rate:.1f}%')
 else:
     st.error('Idiot, velg en annen motstander enn deg selv.')
+
+# Podium for top 3 players
+st.header("Topp 3 spillere")
+
+stats_df = get_all_users_stats()
+top_3 = stats_df.nlargest(3, 'win_rate')
+
+fig = go.Figure()
+fig.add_trace(go.Bar(
+    x=top_3['nick_name'],
+    y=top_3['win_rate'],
+    text=top_3['win_rate'].apply(lambda x: f'{x:.2f}%'),
+    textposition='auto',
+    marker_color=['gold', 'silver', '#cd7f32'],  # Colors for 1st, 2nd, and 3rd place
+))
+
+fig.update_layout(
+    title='Podium: Topp 3 spillere med høyeste seiersprosent',
+    xaxis_title='Spillere',
+    yaxis_title='Seiersprosent',
+    yaxis_range=[0, 100]
+)
+
+st.plotly_chart(fig)

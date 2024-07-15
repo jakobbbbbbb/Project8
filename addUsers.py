@@ -52,18 +52,18 @@ if 'county' not in st.session_state:
 
 # Streamlit app
 st.header("Brukere")
-st.sidebar.subheader("Legg til ny bruker")
+st.subheader("Legg til ny bruker")
 
-with st.sidebar.form(key='Add new user'):
+with st.form(key='Add new user'):
     name = st.text_input("Fullt navn", placeholder='Skriv navn her', value=st.session_state['name'], key='name_input')
     nickName = st.text_input("Legg til kallenavn", placeholder='Skriv kallenavn her', value=st.session_state['nickName'], key='nickName_input')
-    county = st.selectbox('Velg fylke', counties, index=counties.index(st.session_state['county']), placeholder='Velg fra liste', key='county_select')
+    county = st.selectbox('Velg fylke', counties, index=None, placeholder='Velg fra liste', key='county_select')
     submitButton = st.form_submit_button(label='Legg til')
 
     if submitButton:
         if name and nickName and county:
             if checkUser(name, nickName):
-                st.sidebar.error('Brukeren finnes allerede.')
+                st.error('Brukeren finnes allerede.')
             else:
                 addUser(name, nickName, county)
                 st.session_state['submitted'] = True
@@ -72,18 +72,15 @@ with st.sidebar.form(key='Add new user'):
                 st.session_state['county'] = counties[0]
                 st.experimental_rerun()
         else:
-            st.sidebar.error('Et felt mangler, skjerp deg.')
+            st.error('Et felt mangler, skjerp deg.')
 
 # Add a button to wipe the database
-if st.sidebar.button('Wipe Database'):
+if st.button('Wipe Database'):
     wipe_database(engine)
-    st.sidebar.success('Database wiped successfully!')
+    st.success('Database wiped successfully!')
 
 # Feedback after form submission
 if st.session_state['submitted']:
-    st.sidebar.success('Bruker lagt til!')
+    st.success('Bruker lagt til!')
     st.session_state['submitted'] = False
 
-# Display all users in the database for verification
-users_df = pd.read_sql('SELECT * FROM users', con=engine)
-st.write(users_df)
