@@ -15,7 +15,8 @@ def check_password():
         st.session_state["admin_authenticated"] = False
 
     if not st.session_state["admin_authenticated"]:
-        st.header("Admin Login")
+        st.header("Admin")
+        st.markdown("Hold deg unna du🧌", unsafe_allow_html=True)
         st.text_input("Enter Admin Password", type="password", on_change=password_entered, key="password")
         if not st.session_state["admin_authenticated"]:
             st.error("Incorrect password")
@@ -25,5 +26,5 @@ def check_password():
 
 if check_password():
     st.header("Admin")
-    st.write("This is the admin functionality page.")
+    st.write("Velkommen til innsiden.")
     # Add your admin functionalities here
