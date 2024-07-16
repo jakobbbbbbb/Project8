@@ -24,7 +24,7 @@ create_results_table(engine)
 def add_result(winner_id, loser_id):
     result_data = pd.DataFrame({'winner_id': [winner_id], 'loser_id': [loser_id], 'date': [pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')]})
     result_data.to_sql('results', con=engine, if_exists='append', index=False)
-    st.experimental_rerun()  # Rerun to refresh data
+    st.rerun()  # Rerun to refresh data
 
 def get_users():
     query = "SELECT * FROM users"
